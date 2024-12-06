@@ -46,8 +46,7 @@ class Recipe(models.Model):
         verbose_name='Ингредиент'
     )
     image = models.ImageField('Изображение рецепта', upload_to='media/recipes')
-
-    tags = models.ManyToManyField('Tag', related_name='recipes', 
+    tags = models.ManyToManyField('Tag', related_name='recipes',
                                   verbose_name='Тег')
     author = models.ForeignKey(User, on_delete=models.CASCADE,
                                related_name='recipes', verbose_name='Автор')

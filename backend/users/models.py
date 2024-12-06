@@ -16,7 +16,7 @@ class User(AbstractUser):
                                         message='Данные символы запрещены.'
                                     )
                                 ])
-    avatar = models.ImageField('Аватар', upload_to='media/avatar', 
+    avatar = models.ImageField('Аватар', upload_to='media/avatar',
                                null=True, blank=True, default=None)
 
     USERNAME_FIELD = 'email'
@@ -33,7 +33,7 @@ class User(AbstractUser):
 
 class Follow(models.Model):
     """Модель подписок."""
-    user = models.ForeignKey(User, on_delete=models.CASCADE, 
+    user = models.ForeignKey(User, on_delete=models.CASCADE,
                              related_name='follower', verbose_name='Подписчик')
     following = models.ForeignKey(User, on_delete=models.CASCADE,
                                   related_name='following',

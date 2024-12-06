@@ -14,7 +14,7 @@ from djoser.views import UserViewSet as DjoserUserViewSet
 
 from .filters import RecipeFilter, IngredientSearchFilter
 from users.models import User
-from recipes.models import (Tag, Ingredient, Recipe, 
+from recipes.models import (Tag, Ingredient, Recipe,
                             FavoriteRecipe, ShoppingCart)
 from .permissions import IsStaffOrIsAuthorOrReadOnly
 from .pagination import PagePagination
