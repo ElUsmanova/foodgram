@@ -1,0 +1,43 @@
+volumes:
+  pg_data:
+  static:
+  media:
+
+services:
+  db:
+    image: postgres:13.10
+    env_file: .env
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    restart: always
+
+  backend:
+    image: elusmanova/foodgram_backend
+    env_file: .env
+    depends_on:
+      - db
+    volumes:
+      - static:/backend_static
+      - media:/app/media
+    restart: always
+
+  frontend:
+    image: elusmanova/foodgram_frontend
+    env_file: .env
+    command: cp -r /app/build/. /frontend_static/
+    volumes:
+      - static:/frontend_static
+    depends_on:
+      - backend
+
+  gateway:
+    image: elusmanova/foodgram_gateway
+    env_file: .env
+    depends_on:
+      - frontend
+    volumes:
+      - static:/staticfiles/
+      - media:/app/media
+    ports:
+      - 9988:80
+    restart: always
