@@ -1,5 +1,5 @@
 from django.http import JsonResponse
-
+from django.db.models import Count
 from rest_framework.generics import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import action
@@ -9,7 +9,6 @@ from rest_framework.response import Response
 from rest_framework.generics import RetrieveAPIView
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from django_filters.rest_framework import DjangoFilterBackend
-
 from djoser.views import UserViewSet as DjoserUserViewSet
 
 from .filters import RecipeFilter, IngredientSearchFilter
@@ -116,8 +115,7 @@ class RecipeViewSet(ModelViewSet):
     def download_shopping_cart(self, request):
         """Загружает список ингредиентов из корзины покупок в формате PDF."""
         final_list = create_ingredients_list(request)
-        pdf_response = create_pdf(final_list, "ingredients_list.pdf")
-        return pdf_response
+        return create_pdf(final_list, "ingredients_list.pdf")
 
 
 class IngredientViewSet(ReadOnlyModelViewSet):
@@ -143,6 +141,13 @@ class UserViewSet(DjoserUserViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     pagination_class = PagePagination
+
+    def get_queryset(self):
+        """Получение списка пользователей,
+        на которых подписан текущий пользователь."""
+        user = self.request.user
+        return User.objects.filter(subscribers=user).annotate(
+            recipes_count=Count('recipes'))
 
     @action(detail=True, methods=['post'],
             permission_classes=(IsAuthenticated,))

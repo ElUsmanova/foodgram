@@ -1,11 +1,12 @@
 from dataclasses import dataclass
-from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
 from django.http import HttpResponse
 from django.db.models import Sum
-from .constants import (FONT_NAME, FONT_SIZE, LINE_SPACING,
-                        START_Y_POSITION)
 
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+
+from .constants import (FONT_NAME, FONT_SIZE, LINE_SPACING,
+                        START_Y_POSITION, TEXT_LEFT_MARGIN)
 from recipes.models import RecipeIngredient
 
 
@@ -48,13 +49,14 @@ def create_pdf(final_list, filename):
     p = canvas.Canvas(response, pagesize=letter)
     p.setFont(FONT_NAME, FONT_SIZE)
     y = START_Y_POSITION
-    p.drawString(30, y, 'Список ингредиентов:')
+    p.drawString(TEXT_LEFT_MARGIN, y, 'Список ингредиентов:')
     y -= LINE_SPACING
     for ingredient_info in final_list:
         name = ingredient_info.name.capitalize()
         measurement_unit = ingredient_info.measurement_unit
         total_amount = ingredient_info.total_amount
-        p.drawString(30, y, f'{name} ({measurement_unit}): {total_amount}')
+        p.drawString(TEXT_LEFT_MARGIN, y,
+                     f'{name} ({measurement_unit}): {total_amount}')
         y -= LINE_SPACING
     p.showPage()
     p.save()

@@ -20,10 +20,10 @@ urlpatterns = [
     path('', include(router.urls)),
     path('recipes/s/<str:short_code>/',
          RecipeByShortCodeDetailView.as_view(), name='short_code'),
-    path("schema/", SpectacularAPIView.as_view(),
-         name="schema"),
-    path("schema/redoc/", SpectacularRedocView.as_view(
-        url_name="schema"), name="redoc"),
-    path("schema/swagger-ui/", SpectacularSwaggerView.as_view(
-        url_name="schema"), name="swagger-ui"),
+    path('schema/', SpectacularAPIView.as_view(),
+         name='schema'),
+    path('schema/redoc/', SpectacularRedocView.as_view(
+        url_name='schema'), name='redoc'),
+    path('schema/swagger-ui/', SpectacularSwaggerView.as_view(
+        url_name='schema'), name='swagger-ui'),
 ]

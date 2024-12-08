@@ -29,7 +29,7 @@ class UserSerializer(serializers.ModelSerializer):
         user = request.user
         if user.is_anonymous:
             return False
-        return Follow.objects.filter(user=user, following=obj).exists()
+        return obj.follower.filter(user=user).exists()
 
 
 class AvatarSerializer(serializers.ModelSerializer):
@@ -140,7 +140,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         """Валидация данных перед созданием или обновлением рецепта."""
         tags = attrs.get('tags')
         ingredients = attrs.get('ingredients')
-        cooking_time = attrs.get('cooking_time')
+        cooking_time = attrs['cooking_time']
 
         if not ingredients:
             raise serializers.ValidationError({
@@ -148,11 +148,8 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
             })
         if not tags:
             raise serializers.ValidationError({'tags': 'Поле отсутствует'})
-        if cooking_time is None or not (
-                MIN_AMOUNT <= cooking_time <= MAX_AMOUNT):
-            error_message = (
-                f'Должно быть от {MIN_AMOUNT} до {MAX_AMOUNT} минут.'
-            )
+        if cooking_time < 1 or cooking_time > 32000:
+            error_message = 'Должно быть от 1 до 32_000 минут.'
             raise serializers.ValidationError({'cooking_time': error_message})
         return attrs
 
@@ -221,10 +218,6 @@ class SubscriptionsSerializer(UserSerializer):
         if recipes_limit and recipes_limit.isdigit():
             recipes = recipes[:int(recipes_limit)]
         return RecipeShopFavorSerializer(recipes, many=True).data
-
-    def get_recipes_count(self, obj):
-        """Получение количества рецептов пользователя."""
-        return obj.recipes.count()
 
 
 class SubscribeSerializer(serializers.ModelSerializer):
