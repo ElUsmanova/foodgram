@@ -1,0 +1,10 @@
+from reportlab.lib.pagesizes import letter
+
+FONT_NAME = 'Arial'
+FONT_SIZE = 15
+TOP_MARGIN = 40
+LINE_SPACING = 20
+START_Y_POSITION = letter[1] - TOP_MARGIN
+MIN_AMOUNT = 1
+MAX_AMOUNT = 32_000
+URL_LINK_LENGTH = 8

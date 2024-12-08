@@ -2,6 +2,7 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 from drf_extra_fields.fields import Base64ImageField
 
+from .constants import MIN_AMOUNT, MAX_AMOUNT
 from users.models import User, Follow
 from recipes.models import (
     Recipe,
@@ -24,7 +25,8 @@ class UserSerializer(serializers.ModelSerializer):
     def get_is_subscribed(self, obj):
         """Проверка, подписан ли текущий пользователь
         на данного пользователя."""
-        user = self.context.get('request').user
+        request = self.context['request']
+        user = request.user
         if user.is_anonymous:
             return False
         return Follow.objects.filter(user=user, following=obj).exists()
@@ -61,7 +63,8 @@ class IngredientCreateUpdateSerializer(serializers.ModelSerializer):
 
     id = serializers.PrimaryKeyRelatedField(
         queryset=Ingredient.objects.all(), required=True)
-    amount = serializers.IntegerField(min_value=1)
+    amount = serializers.IntegerField(min_value=MIN_AMOUNT,
+                                      max_value=MAX_AMOUNT)
 
     class Meta:
         model = RecipeIngredient
@@ -100,14 +103,16 @@ class RecipeReadSerializer(serializers.ModelSerializer):
 
     def get_is_favorited(self, obj):
         """Проверка, добавлен ли рецепт в избранное текущим пользователем."""
-        user = self.context.get('request').user
+        request = self.context['request']
+        user = request.user
         if user.is_anonymous:
             return False
         return user.favorite_recipes.filter(recipe=obj).exists()
 
     def get_is_in_shopping_cart(self, obj):
         """Проверка, находится ли рецепт в корзине текущего пользователя."""
-        user = self.context.get('request').user
+        request = self.context['request']
+        user = request.user
         if user.is_anonymous:
             return False
         return user.shopping_carts.filter(recipe=obj).exists()
@@ -123,6 +128,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         many=True,
     )
     image = Base64ImageField(required=True)
+    cooking_time = serializers.IntegerField()
 
     class Meta:
         model = Recipe
@@ -134,12 +140,20 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         """Валидация данных перед созданием или обновлением рецепта."""
         tags = attrs.get('tags')
         ingredients = attrs.get('ingredients')
+        cooking_time = attrs.get('cooking_time')
+
         if not ingredients:
-            raise serializers.ValidationError(
-                {'ingredients': 'Поле отсутствует'})
+            raise serializers.ValidationError({
+                'ingredients': 'Поле отсутствует'
+            })
         if not tags:
-            raise serializers.ValidationError(
-                {'tags': 'Поле отсутствует'})
+            raise serializers.ValidationError({'tags': 'Поле отсутствует'})
+        if cooking_time is None or not (
+                MIN_AMOUNT <= cooking_time <= MAX_AMOUNT):
+            error_message = (
+                f'Должно быть от {MIN_AMOUNT} до {MAX_AMOUNT} минут.'
+            )
+            raise serializers.ValidationError({'cooking_time': error_message})
         return attrs
 
     def create(self, validated_data):
@@ -149,12 +163,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         recipe = Recipe.objects.create(
             author=self.context['request'].user, **validated_data)
         recipe.tags.set(tags)
-        RecipeIngredient.objects.bulk_create(
-            RecipeIngredient(recipe=recipe,
-                             ingredient=ingredient['id'],
-                             amount=ingredient['amount'])
-            for ingredient in ingredients
-        )
+        self._create_recipe_ingredients(recipe, ingredients)
         return recipe
 
     def update(self, instance, validated_data):
@@ -165,13 +174,17 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         ingredients = validated_data.pop('ingredients', None)
         if ingredients is not None:
             instance.ingredients.clear()
-            RecipeIngredient.objects.bulk_create(
-                RecipeIngredient(recipe=instance,
-                                 ingredient=ingredient['id'],
-                                 amount=ingredient['amount'])
-                for ingredient in ingredients
-            )
+            self._create_recipe_ingredients(instance, ingredients)
         return super().update(instance, validated_data)
+
+    def _create_recipe_ingredients(self, recipe, ingredients):
+        """Создание ингредиентов для рецепта."""
+        RecipeIngredient.objects.bulk_create(
+            RecipeIngredient(recipe=recipe,
+                             ingredient=ingredient['id'],
+                             amount=ingredient['amount'])
+            for ingredient in ingredients
+        )
 
     def to_representation(self, instance):
         """Преобразование экземпляра рецепта в формат для отображения."""

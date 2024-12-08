@@ -52,17 +52,18 @@ class RecipeViewSet(ModelViewSet):
     @staticmethod
     def add_method(serializer_cls, request, pk):
         """Добавляет рецепт в избранное или в корзину покупок."""
-        serializer = serializer_cls(data={
-            'user': request.user.id, 'recipe': pk}, context={
-                'request': request})
         if not Recipe.objects.filter(id=pk).exists():
             return Response(data={
                 'error': 'Вы пытаетесь добавить несуществующий рецепт'},
                 status=status.HTTP_404_NOT_FOUND)
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer = serializer_cls(data={
+            'user': request.user.id,
+            'recipe': pk},
+            context={'request': request}
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @staticmethod
     def delete_method(model, request, pk):
@@ -148,24 +149,22 @@ class UserViewSet(DjoserUserViewSet):
     def subscribe(self, request, id):
         """"Подписка на указанного пользователя по ID."""
         user = request.user
-        serializer = SubscribeSerializer(
-            data={
-                'user': user.id,
-                'following': id},
-            context={'request': request})
-        if not User.objects.filter(id=self.kwargs['id']).exists():
+        if not User.objects.filter(id=id).exists():
             return Response(
                 data={
-                    'Вы пытаетесь подписатсья на несуществующего юзера',
+                    'error': (
+                        'Вы пытаетесь подписаться на несуществующего юзера'
+                    )
                 },
                 status=status.HTTP_404_NOT_FOUND,
             )
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
-            return Response(serializer.data,
-                            status=status.HTTP_201_CREATED)
-        return Response(serializer.errors,
-                        status=status.HTTP_400_BAD_REQUEST)
+        serializer = SubscribeSerializer(
+            data={'user': user.id, 'following': id},
+            context={'request': request}
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @subscribe.mapping.delete
     def delete_subscribe(self, request, id):
@@ -200,12 +199,9 @@ class UserViewSet(DjoserUserViewSet):
     def update_avatar(self, request):
         """Обновление аватара текущего пользователя."""
         serializer = AvatarSerializer(request.user, data=request.data)
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
-            return Response(serializer.data,
-                            status=status.HTTP_200_OK)
-        return Response(serializer.errors,
-                        status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @update_avatar.mapping.delete
     def delete_avatar(self, request):

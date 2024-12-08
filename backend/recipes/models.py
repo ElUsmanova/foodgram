@@ -1,7 +1,8 @@
 from django.db import models
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.crypto import get_random_string
 
+from api.constants import MIN_AMOUNT, MAX_AMOUNT, URL_LINK_LENGTH
 from users.models import User
 
 
@@ -51,9 +52,12 @@ class Recipe(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE,
                                related_name='recipes', verbose_name='Автор')
     cooking_time = models.PositiveSmallIntegerField(
-        'Время приготовления', validators=[
-            MinValueValidator(
-                1, message='Минимальное значение 1')]
+        'Время приготовления',
+        validators=[
+            MinValueValidator(MIN_AMOUNT, message='Минимальное значение 1'),
+            MaxValueValidator(MAX_AMOUNT,
+                              message='Максимальное значение 32000')
+        ]
     )
     pub_date = models.DateTimeField(verbose_name="Дата публикации",
                                     auto_now_add=True)
@@ -71,7 +75,7 @@ class Recipe(models.Model):
         """Сохраняет экземпляр рецепта."""
         if not self.url_link:
             while True:
-                self.url_link = get_random_string(length=8)
+                self.url_link = get_random_string(length=URL_LINK_LENGTH)
                 if not Recipe.objects.filter(url_link=self.url_link).exists():
                     break
         super().save(*args, **kwargs)
@@ -91,12 +95,17 @@ class RecipeIngredient(models.Model):
         related_name='recipe_ingredient_set'
     )
     amount = models.PositiveSmallIntegerField(
-        'Количество', default=1,
-        validators=[MinValueValidator(
-            1, message='Минимальное значение 1')]
+        'Количество',
+        default=1,
+        validators=[
+            MinValueValidator(MIN_AMOUNT, message='Минимальное значение 1'),
+            MaxValueValidator(MAX_AMOUNT,
+                              message='Максимальное значение 32,000')
+        ]
     )
 
     class Meta:
+        ordering = ['recipe', 'ingredient']
         verbose_name = 'Ингредиенты рецепта'
         verbose_name_plural = 'Ингредиенты рецептов'
 
@@ -123,6 +132,7 @@ class FavoriteRecipe(UserRecipeAbstract):
     """Модель избранных рецептов."""
 
     class Meta(UserRecipeAbstract.Meta):
+        ordering = ['recipe']
         default_related_name = 'favorite_recipes'
         verbose_name = 'Избранный рецепт'
         verbose_name_plural = 'Избранные рецепты'
@@ -139,6 +149,7 @@ class ShoppingCart(UserRecipeAbstract):
     """Модель корзины покупок."""
 
     class Meta(UserRecipeAbstract.Meta):
+        ordering = ['recipe']
         default_related_name = 'shopping_carts'
         verbose_name = 'Список покупок'
         verbose_name_plural = 'Списки покупок'
