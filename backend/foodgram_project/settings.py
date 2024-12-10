@@ -13,15 +13,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 pdfmetrics.registerFont(TTFont('Arial', BASE_DIR / 'fonts' / 'arialmt.ttf'))
 
-SECRET_KEY = 'django-insecure-9!!v12#d*n9=w_s7l4hx#2f!3mg4=1sr!&iw@e0p5nwy!(-2z1'
+SECRET_KEY = os.getenv("SECRET_KEY", "some_fake_secret_to_pass_tests")
 
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'False').strip().lower() in ['true', '1', 't']
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
-
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
 
 AUTH_USER_MODEL = 'users.User'
-
 
 INSTALLED_APPS = [
     'django.contrib.admin',

@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 from drf_extra_fields.fields import Base64ImageField
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 from .constants import MIN_AMOUNT, MAX_AMOUNT
 from users.models import User, Follow
@@ -128,7 +129,12 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         many=True,
     )
     image = Base64ImageField(required=True)
-    cooking_time = serializers.IntegerField()
+    cooking_time = serializers.IntegerField(
+        validators=[
+            MinValueValidator(MIN_AMOUNT),
+            MaxValueValidator(MAX_AMOUNT)
+        ]
+    )
 
     class Meta:
         model = Recipe
@@ -140,7 +146,6 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         """Валидация данных перед созданием или обновлением рецепта."""
         tags = attrs.get('tags')
         ingredients = attrs.get('ingredients')
-        cooking_time = attrs['cooking_time']
 
         if not ingredients:
             raise serializers.ValidationError({
@@ -148,9 +153,6 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
             })
         if not tags:
             raise serializers.ValidationError({'tags': 'Поле отсутствует'})
-        if cooking_time < 1 or cooking_time > 32000:
-            error_message = 'Должно быть от 1 до 32_000 минут.'
-            raise serializers.ValidationError({'cooking_time': error_message})
         return attrs
 
     def create(self, validated_data):
