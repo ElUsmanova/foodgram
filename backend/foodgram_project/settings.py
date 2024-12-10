@@ -17,7 +17,7 @@ SECRET_KEY = os.getenv("SECRET_KEY", "some_fake_secret_to_pass_tests")
 
 DEBUG = os.getenv('DEBUG', 'False').strip().lower() in ['true', '1', 't']
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
 
 AUTH_USER_MODEL = 'users.User'
 
@@ -153,4 +153,5 @@ SPECTACULAR_SETTINGS = {
     "VERSION": "1.0.0",
 }
 
-CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://127.0.0.1:8000']
+# CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://127.0.0.1:8000']
+CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split()
