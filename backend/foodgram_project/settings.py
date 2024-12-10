@@ -145,6 +145,5 @@ SPECTACULAR_SETTINGS = {
     "VERSION": "1.0.0",
 }
 
-CSRF_TRUSTED_ORIGINS = [
-       origin.strip() for origin in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',') if origin.strip()
-   ]
+CSRF_TRUSTED_ORIGINS = [origin.strip() for origin
+                        in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',') if origin.strip()]
