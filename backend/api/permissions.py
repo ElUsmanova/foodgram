@@ -17,3 +17,5 @@ class IsStaffOrIsAuthorOrReadOnly(BasePermission):
             or request.user.is_authenticated
             and (request.user == obj.author or request.user.is_staff)
         )
+
+# прлпд
