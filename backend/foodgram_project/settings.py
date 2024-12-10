@@ -95,7 +95,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 LANGUAGE_CODE = 'ru-RU'
 
 TIME_ZONE = 'UTC'
@@ -146,4 +145,4 @@ SPECTACULAR_SETTINGS = {
     "VERSION": "1.0.0",
 }
 
-CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split()
+CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
