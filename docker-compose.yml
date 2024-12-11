@@ -33,6 +33,6 @@ services:
       - frontend
     volumes:
       - static:/staticfiles/
-      - media:/app/media
+      - media:/media/
     ports:
       - 9988:80
