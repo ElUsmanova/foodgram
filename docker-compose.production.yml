@@ -19,6 +19,7 @@ services:
     volumes:
       - static:/backend_static
       - media:/app/media
+      - ./collected_static:/app/collected_static
     restart: always
 
   frontend:
@@ -35,6 +36,7 @@ services:
     env_file: .env
     depends_on:
       - frontend
+      - backend
     volumes:
       - static:/staticfiles/
       - media:/media/
