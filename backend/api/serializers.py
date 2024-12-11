@@ -258,7 +258,7 @@ class SubscribeSerializer(serializers.ModelSerializer):
 
 
 class BaseRecipeSerializer(serializers.ModelSerializer):
-    """Базовый сериализатор для избранного и корзины."""
+    """Базовый сериализатор для избранного корзины."""
 
     class Meta:
         abstract = True
