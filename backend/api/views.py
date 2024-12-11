@@ -154,7 +154,10 @@ class UserViewSet(DjoserUserViewSet):
     def subscribe(self, request, id):
         """"Подписка на указанного пользователя по ID."""
         user = request.user
-        if not User.objects.filter(id=id).exists():
+        serializer = SubscribeSerializer(
+            data={'user': user.id, 'following': id},
+            context={'request': request})
+        if not User.objects.filter(id=self.kwargs['id']).exists():
             return Response(
                 data={
                     'error': (
@@ -163,10 +166,6 @@ class UserViewSet(DjoserUserViewSet):
                 },
                 status=status.HTTP_404_NOT_FOUND,
             )
-        serializer = SubscribeSerializer(
-            data={'user': user.id, 'following': id},
-            context={'request': request}
-        )
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
