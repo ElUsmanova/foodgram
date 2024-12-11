@@ -224,13 +224,16 @@ class SubscriptionsSerializer(UserSerializer):
             recipes = recipes[:int(recipes_limit)]
         return RecipeShopFavorSerializer(recipes, many=True).data
 
+    def get_recipes_count(self, obj):
+        return obj.recipes.count()
+
 
 class SubscribeSerializer(serializers.ModelSerializer):
     """Сериализатор для управления подписками на пользователей."""
 
     class Meta:
         model = Follow
-        fields = '__all__'
+        fields = ('user', 'following')
         validators = [
             UniqueTogetherValidator(
                 queryset=Follow.objects.all(),
