@@ -30,7 +30,7 @@ class UserSerializer(serializers.ModelSerializer):
         user = request.user
         if user.is_anonymous:
             return False
-        return obj.follower.filter(user=user).exists()
+        return obj.follower.filter(user=user, following=obj).exists()
 
 
 class AvatarSerializer(serializers.ModelSerializer):
